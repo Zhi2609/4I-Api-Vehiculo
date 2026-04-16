@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "..", "public")));
 
 let inventarioNuevo = new Inventario();
 
@@ -62,6 +62,6 @@ app.delete("/vehiculo/:placa", (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(3000, () => {
-  console.log("Server is running on port " + PORT);
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
