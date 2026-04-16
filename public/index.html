@@ -1,0 +1,132 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Formulario</title>
+  </head>
+
+  <body>
+    <form>
+      <label for="txtPlaca">Placa:</label>
+      <input type="text" id="txtPlaca" name="placa" />
+      <br />
+      <label for="txtMarca">Marca:</label>
+      <input type="text" id="txtMarca" name="marca" />
+      <br />
+      <label for="txtModelo">Modelo:</label>
+      <input type="text" id="txtModelo" name="modelo" />
+      <br />
+      <button type="button" id="btnAgregar">Agregar</button>
+      <button type="button" id="btnListar">Listar</button>
+      <button type="button" id="btnBuscar">Buscar</button>
+      <button type="button" id="btnEliminar">Eliminar</button>
+      <br />
+      <button type="button" id="btnLimpiar">Limpiar</button>
+
+      <div id="listado"></div>
+      <div id="detalles"></div>
+    </form>
+
+    <script>
+      const API_URL = "./vehiculo";
+
+      const txtPlaca = document.getElementById("txtPlaca");
+      const txtMarca = document.getElementById("txtMarca");
+      const txtModelo = document.getElementById("txtModelo");
+      const divListado = document.getElementById("listado");
+      const divDetalles = document.getElementById("detalles");
+
+      function getInputs() {
+        return {
+          placa: txtPlaca.value,
+          marca: txtMarca.value,
+          modelo: txtModelo.value,
+        };
+      }
+
+      function mostrar(msg) {
+        divDetalles.textContent = JSON.stringify(msg, null, 2);
+      }
+
+      const btnAgregar = document.getElementById("btnAgregar");
+      btnAgregar.addEventListener("click", () => {
+        const { placa, marca, modelo } = getInputs();
+
+        fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json; charset=UTF-8" },
+          body: JSON.stringify({ placa, marca, modelo }),
+        })
+          .then((response) => response.json())
+          .then((json) => mostrar(json))
+          .catch((err) => mostrar({ error: err.message }));
+      });
+
+      const btnListar = document.getElementById("btnListar");
+      btnListar.addEventListener("click", () => {
+        fetch(API_URL)
+          .then((response) => response.json())
+          .then((vehiculos) => {
+            let texto = "";
+            vehiculos.forEach((vehiculo) => {
+              texto += `
+              <div class="card">
+                <div class="card-header">${vehiculo.placa}</div>
+                <div class="card-body">
+                  <h5 class="card-title">${vehiculo.marca}</h5>
+                  <p class="card-text">${vehiculo.modelo}</p>
+                </div>
+              </div><br>
+            `;
+            });
+            divListado.innerHTML = texto;
+          })
+          .catch((err) => mostrar({ error: err.message }));
+      });
+
+      const btnBuscar = document.getElementById("btnBuscar");
+      btnBuscar.addEventListener("click", () => {
+        const { placa } = getInputs();
+        if (!placa) {
+          mostrar("Ingresa una placa");
+        } else {
+          fetch(`${API_URL}/${placa}`)
+            .then((response) => response.json())
+            .then((vehiculo) => {
+              txtMarca.value = vehiculo.marca;
+              txtModelo.value = vehiculo.modelo;
+              mostrar(vehiculo);
+            })
+            .catch((err) => mostrar({ error: err.message }));
+        }
+      });
+
+      const btnEliminar = document.getElementById("btnEliminar");
+      btnEliminar.addEventListener("click", () => {
+        const { placa } = getInputs();
+
+        if (!placa) {
+          mostrar("Ingresa una placa");
+        } else {
+          fetch(`${API_URL}/${placa}`, {
+            method: "DELETE",
+          })
+            .then((response) => response.json())
+            .then((json) => {
+              divListado.innerHTML = "";
+              mostrar(json);
+            })
+            .catch((err) => mostrar({ error: err.message }));
+        }
+      });
+
+      const btnLimpiar = document.getElementById("btnLimpiar");
+      btnLimpiar.addEventListener("click", () => {
+        txtPlaca.value = "";
+        txtMarca.value = "";
+        txtModelo.value = "";
+        divListado.innerHTML = "";
+        divDetalles.innerHTML = "";
+      });
+    </script>
+  </body>
+</html>
